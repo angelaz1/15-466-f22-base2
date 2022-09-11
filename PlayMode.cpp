@@ -142,26 +142,25 @@ void PlayMode::update(float elapsed) {
 	// );
 
 	//move camera:
-	// {
+	{
 
-	// 	//combine inputs into a move:
-	// 	constexpr float PlayerSpeed = 30.0f;
-	// 	glm::vec2 move = glm::vec2(0.0f);
-	// 	if (left.pressed && !right.pressed) move.x =-1.0f;
-	// 	if (!left.pressed && right.pressed) move.x = 1.0f;
-	// 	if (down.pressed && !up.pressed) move.y =-1.0f;
-	// 	if (!down.pressed && up.pressed) move.y = 1.0f;
+		//combine inputs into a move:
+		constexpr float PlayerSpeed = 30.0f;
+		glm::vec2 move = glm::vec2(0.0f);
+		if (left.pressed && !right.pressed) move.x =-1.0f;
+		if (!left.pressed && right.pressed) move.x = 1.0f;
+		if (down.pressed && !up.pressed) move.y =-1.0f;
+		if (!down.pressed && up.pressed) move.y = 1.0f;
 
-	// 	//make it so that moving diagonally doesn't go faster:
-	// 	if (move != glm::vec2(0.0f)) move = glm::normalize(move) * PlayerSpeed * elapsed;
+		//make it so that moving diagonally doesn't go faster:
+		if (move != glm::vec2(0.0f)) move = glm::normalize(move) * PlayerSpeed * elapsed;
+		glm::mat4x3 frame = camera->transform->make_local_to_parent();
+		glm::vec3 frame_right = frame[0];
+		//glm::vec3 up = frame[1];
+		glm::vec3 frame_forward = -frame[2];
 
-	// 	glm::mat4x3 frame = camera->transform->make_local_to_parent();
-	// 	glm::vec3 right = frame[0];
-	// 	//glm::vec3 up = frame[1];
-	// 	glm::vec3 forward = -frame[2];
-
-	// 	camera->transform->position += move.x * right + move.y * forward;
-	// }
+		camera->transform->position += move.x * frame_right + move.y * frame_forward;
+	}
 
 	//reset button press counters:
 	left.downs = 0;
