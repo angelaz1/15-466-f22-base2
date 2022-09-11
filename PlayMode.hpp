@@ -27,6 +27,17 @@ struct PlayMode : Mode {
 	//local copy of the game scene (so code can change it during gameplay):
 	Scene scene;
 
+	//bird animations:
+	Scene::Transform *left_leg = nullptr;
+	Scene::Transform *right_leg = nullptr;
+	Scene::Transform *left_wing = nullptr;
+	Scene::Transform *right_wing = nullptr;
+	glm::quat left_leg_base_rotation;
+	glm::quat right_leg_base_rotation;
+	glm::quat left_wing_base_rotation;
+	glm::quat right_wing_base_rotation;
+	float wobble = 0.0f;
+
 	//hexapod leg to wobble:
 	Scene::Transform *hip = nullptr;
 	Scene::Transform *upper_leg = nullptr;
@@ -38,5 +49,4 @@ struct PlayMode : Mode {
 	
 	//camera:
 	Scene::Camera *camera = nullptr;
-
 };
