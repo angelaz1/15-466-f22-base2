@@ -27,25 +27,38 @@ struct PlayMode : Mode {
 	//local copy of the game scene (so code can change it during gameplay):
 	Scene scene;
 
-	//bird animations:
+private:
+	// Bird animation references:
 	Scene::Transform *left_leg = nullptr;
 	Scene::Transform *right_leg = nullptr;
 	Scene::Transform *left_wing = nullptr;
 	Scene::Transform *right_wing = nullptr;
+	Scene::Transform *beak = nullptr;
 	glm::quat left_leg_base_rotation;
 	glm::quat right_leg_base_rotation;
 	glm::quat left_wing_base_rotation;
 	glm::quat right_wing_base_rotation;
-	float wobble = 0.0f;
 
-	//hexapod leg to wobble:
-	Scene::Transform *hip = nullptr;
-	Scene::Transform *upper_leg = nullptr;
-	Scene::Transform *lower_leg = nullptr;
-	glm::quat hip_base_rotation;
-	glm::quat upper_leg_base_rotation;
-	glm::quat lower_leg_base_rotation;
-	float wobble = 0.0f;
+	// Main gameplay transforms to reference
+	Scene::Transform *bird = nullptr;
+	Scene::Transform *plane = nullptr;
+	Scene::Transform *coin = nullptr;
+	Scene::Transform *cloud = nullptr;
+	float anim_time = 0.0f;
+
+	// Gameplay variables
+	// uint32_t score = 0;
+	// uint8_t lives = 3;
+
+	// const float max_plane_spawn_time = 2.0f;
+	// const float min_plane_spawn_time = 5.0f;
+	// const float max_coin_spawn_time = 2.0f;
+	// const float min_coin_spawn_time = 5.0f;
+
+	// float plane_spawn_timer;
+	// float coin_spawn_timer;
+
+	// Smth smth handle collisions
 	
 	//camera:
 	Scene::Camera *camera = nullptr;

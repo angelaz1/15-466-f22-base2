@@ -109,7 +109,7 @@ struct Scene {
 		} type = Point;
 
 		//light energy convolved with our conventional tristimulus spectra:
-		//  (i.e., "red, gree, blue" light color)
+		//  (i.e., "red, green, blue" light color)
 		glm::vec3 energy = glm::vec3(1.0f);
 
 		//Spotlight specific:
