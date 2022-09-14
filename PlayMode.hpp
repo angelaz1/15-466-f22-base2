@@ -22,7 +22,7 @@ struct PlayMode : Mode {
 	struct Button {
 		uint8_t downs = 0;
 		uint8_t pressed = 0;
-	} left, right, down, up, space;
+	} left, right, space;
 
 	//local copy of the game scene (so code can change it during gameplay):
 	Scene scene;
@@ -45,7 +45,11 @@ private:
 	// Main gameplay transforms to reference
 	Scene::Transform *bird = nullptr;
 	Scene::Transform *bird_collider = nullptr;
-	float anim_time = 0.0f;
+	float bird_vel_y = 0.0f;
+	const float gravity = 8.0f;
+	const float jump_vel = 2.0f;
+	float wing_anim_time = 0.0f;
+	float feet_anim_time = 0.0f;
 
 	// Gameplay variables
 	uint32_t score = 0;

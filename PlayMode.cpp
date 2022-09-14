@@ -167,14 +167,6 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			right.downs += 1;
 			right.pressed = true;
 			return true;
-		} else if (evt.key.keysym.sym == SDLK_w) {
-			up.downs += 1;
-			up.pressed = true;
-			return true;
-		} else if (evt.key.keysym.sym == SDLK_s) {
-			down.downs += 1;
-			down.pressed = true;
-			return true;
 		} else if (evt.key.keysym.sym == SDLK_SPACE) {
 			space.downs += 1;
 			space.pressed = true;
@@ -186,12 +178,6 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			return true;
 		} else if (evt.key.keysym.sym == SDLK_d) {
 			right.pressed = false;
-			return true;
-		} else if (evt.key.keysym.sym == SDLK_w) {
-			up.pressed = false;
-			return true;
-		} else if (evt.key.keysym.sym == SDLK_s) {
-			down.pressed = false;
 			return true;
 		} else if (evt.key.keysym.sym == SDLK_SPACE) {
 			space.pressed += 1;
@@ -274,23 +260,29 @@ void PlayMode::end_game() {
 
 void PlayMode::update(float elapsed) {
 	// Slowly rotates through [0,1):
-	anim_time += elapsed / 2.0f;
-	anim_time -= std::floor(anim_time);
+	if (bird_vel_y > 0) {
+		wing_anim_time += elapsed / 2.0f;
+		wing_anim_time -= std::floor(wing_anim_time);
 
-	left_wing->rotation = left_wing_base_rotation * glm::angleAxis(
-		glm::radians(7.0f * std::sin(anim_time * 2.0f * 2.0f * float(M_PI))),
-		glm::vec3(1.0f, 0.0f, 0.0f)
-	);
-	right_wing->rotation = right_wing_base_rotation * glm::angleAxis(
-		glm::radians(7.0f * std::sin(anim_time * 2.0f * 2.0f * float(M_PI))),
-		glm::vec3(-1.0f, 0.0f, 0.0f)
-	);
+		left_wing->rotation = left_wing_base_rotation * glm::angleAxis(
+			glm::radians(13.0f * std::sin(wing_anim_time * 8.0f * 2.0f * float(M_PI))),
+			glm::vec3(1.0f, 0.0f, 0.0f)
+		);
+		right_wing->rotation = right_wing_base_rotation * glm::angleAxis(
+			glm::radians(13.0f * std::sin(wing_anim_time * 8.0f * 2.0f * float(M_PI))),
+			glm::vec3(-1.0f, 0.0f, 0.0f)
+		);
+	}
+
+	feet_anim_time += elapsed / 2.0f;
+	feet_anim_time -= std::floor(feet_anim_time);
+
 	left_leg->rotation = left_leg_base_rotation * glm::angleAxis(
-		glm::radians(10.0f * std::sin(anim_time * 3.0f * 2.0f * float(M_PI))),
+		glm::radians(10.0f * std::sin(feet_anim_time * 3.0f * 2.0f * float(M_PI))),
 		glm::vec3(0.0f, 0.0f, 1.0f)
 	);
 	right_leg->rotation = right_leg_base_rotation * glm::angleAxis(
-		glm::radians(10.0f * std::sin(anim_time * 3.0f * 2.0f * float(M_PI))),
+		glm::radians(10.0f * std::sin(feet_anim_time * 3.0f * 2.0f * float(M_PI))),
 		glm::vec3(0.0f, 0.0f, -1.0f)
 	);
 
@@ -299,13 +291,15 @@ void PlayMode::update(float elapsed) {
 		//combine inputs into a move:
 		constexpr float PlayerSpeed = 5.0f;
 		glm::vec2 move = glm::vec2(0.0f);
-		if (left.pressed && !right.pressed) move.x =-1.0f;
-		if (!left.pressed && right.pressed) move.x = 1.0f;
-		if (down.pressed && !up.pressed) move.y =-1.0f;
-		if (!down.pressed && up.pressed) move.y = 1.0f;
+		if (left.pressed && !right.pressed) move.x =-PlayerSpeed;
+		if (!left.pressed && right.pressed) move.x = PlayerSpeed;
+		if (space.downs > 0) bird_vel_y = jump_vel;
+		move.y = bird_vel_y;
+		bird_vel_y -= gravity * elapsed;
+		//TOOD: cap the speed, maybe make the bird loop around or lose lives
 
 		//make it so that moving diagonally doesn't go faster:
-		if (move != glm::vec2(0.0f)) move = glm::normalize(move) * PlayerSpeed * elapsed;
+		if (move != glm::vec2(0.0f)) move = move * elapsed;
 		glm::mat4x3 frame = bird->make_local_to_parent();
 		glm::vec3 frame_right = -frame[1];
 		glm::vec3 frame_up = frame[2];
@@ -353,8 +347,7 @@ void PlayMode::update(float elapsed) {
 	// Reset button press counters:
 	left.downs = 0;
 	right.downs = 0;
-	up.downs = 0;
-	down.downs = 0;
+	space.downs = 0;
 }
 
 void PlayMode::draw(glm::uvec2 const &drawable_size) {
@@ -413,7 +406,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		constexpr float H = 0.09f;
 
 		char display_text[50];
-		sprintf(display_text, "WASD to move; Lives: %du; Score: %du", lives, score);
+		sprintf(display_text, "AD + Space to move; Lives: %d; Score: %d", lives, score);
 		lines.draw_text(display_text,
 			glm::vec3(-aspect + 0.1f * H, -1.0 + 0.1f * H, 0.0),
 			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
