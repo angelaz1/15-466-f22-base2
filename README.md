@@ -1,14 +1,14 @@
-# (TODO: your game's title)
+# Flappy Goose
 
-Author: (TODO: your name)
+**Author:** Angela Zhang
 
-Design: (TODO: In two sentences or fewer, describe what is new and interesting about your game.)
+**Design:** (TODO: In two sentences or fewer, describe what is new and interesting about your game.)
 
-Screen Shot:
+**Screen Shot:**
 
 ![Screen Shot](screenshot.png)
 
-How To Play:
+**How To Play:**
 
 (TODO: describe the controls and (if needed) goals/strategy.)
 
