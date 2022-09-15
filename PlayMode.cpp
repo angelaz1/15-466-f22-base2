@@ -433,7 +433,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 			0.0f, 0.0f, 0.0f, 1.0f
 		));
 
-		constexpr float H = 0.08f;
+		constexpr float H = 0.085f;
 
 		std::string display_text = 
 			"AD to move + Space to fly; Lives: " + std::to_string(lives) + 
