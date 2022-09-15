@@ -43,7 +43,7 @@ PlayMode::PlayMode() : scene(*bird_scene) {
 	std::map<Scene::Transform*, object_info*> mapping;
 
 	// Get pointers to meshes:
-	Scene::Transform *hemi_light_pos;
+	Scene::Transform *hemi_light_pos = nullptr;
 	for (auto &transform : scene.transforms) {
 		if (transform.name == "leftFoot") left_leg = &transform;
 		else if (transform.name == "rightFoot") right_leg = &transform;
@@ -61,7 +61,7 @@ PlayMode::PlayMode() : scene(*bird_scene) {
 
 			// Initializing fields in info
 			object_info *plane_info = new object_info;
-			plane_info->max_spawn_time = 10;
+			plane_info->max_spawn_time = 7;
 			plane_info->min_spawn_time = 1;
 			plane_info->spawn_time = rand_float(plane_info->min_spawn_time, plane_info->max_spawn_time);
 			plane_info->spawn_timer = 0;
@@ -81,7 +81,7 @@ PlayMode::PlayMode() : scene(*bird_scene) {
 
 			// Initializing fields in info
 			object_info *coin_info = new object_info;
-			coin_info->max_spawn_time = 8;
+			coin_info->max_spawn_time = 5;
 			coin_info->min_spawn_time = 1;
 			coin_info->spawn_time = rand_float(coin_info->min_spawn_time, coin_info->max_spawn_time);
 			coin_info->spawn_timer = 0;
@@ -101,7 +101,7 @@ PlayMode::PlayMode() : scene(*bird_scene) {
 
 			// Initializing fields in info
 			object_info *cloud_info = new object_info;
-			cloud_info->max_spawn_time = 12;
+			cloud_info->max_spawn_time = 10;
 			cloud_info->min_spawn_time = 2;
 			cloud_info->spawn_time = rand_float(cloud_info->min_spawn_time, cloud_info->max_spawn_time);
 			cloud_info->spawn_timer = 0;
@@ -141,17 +141,19 @@ PlayMode::PlayMode() : scene(*bird_scene) {
 	right_wing_base_rotation = right_wing->rotation;
 
 	// Beak rotation ends up being off due to export issues - correct it here
-	beak->rotation = glm::quat(0.646011, -0.700926, -0.1464357, 0.131397);
+	beak->rotation = glm::quat(0.646011f, -0.700926f, -0.1464357f, 0.131397f);
 
 	// Set bird position + rotation
 	bird->position = camera->transform->position + glm::vec3(7, 0, 0);
 	bird->scale = glm::vec3(0.8f, 0.8f, 0.8f);
 
 	// Add lighting
-	Scene::Light light = Scene::Light(hemi_light_pos);
-	light.type = light.Hemisphere;
-	light.energy = glm::vec3(0.95f, 0.9f, 0.9f);
-	scene.lights.push_back(light);
+	if (hemi_light_pos != nullptr) {
+		Scene::Light light = Scene::Light(hemi_light_pos);
+		light.type = light.Hemisphere;
+		light.energy = glm::vec3(0.95f, 0.9f, 0.9f);
+		scene.lights.push_back(light);
+	}
 }
 
 PlayMode::~PlayMode() {
@@ -197,9 +199,9 @@ float PlayMode::rand_float(float lo, float hi) {
 
 bool PlayMode::collision_check(Scene::Transform *parent1, Scene::Transform *collider1, 
 							   Scene::Transform *parent2, Scene::Transform *collider2) {
-	glm::vec3 pos1 = parent1->position + parent1->scale * collider1->position;
+	glm::vec3 pos1 = parent1->position + collider1->position;
 	glm::vec3 scale1 = parent1->scale * collider1->scale;
-	glm::vec3 pos2 = parent2->position + parent2->scale * collider2->position;
+	glm::vec3 pos2 = parent2->position + collider2->position;
 	glm::vec3 scale2 = parent2->scale * collider2->scale;
 
 	if (pos1.x - scale1.x/2 > pos2.x + scale2.x/2 || pos1.x + scale1.x/2 < pos2.x - scale2.x/2) {
@@ -296,7 +298,7 @@ void PlayMode::update(float elapsed) {
 		if (space.downs > 0) bird_vel_y = jump_vel;
 		move.y = bird_vel_y;
 		bird_vel_y -= gravity * elapsed;
-		//TOOD: cap the speed, maybe make the bird loop around or lose lives
+		bird_vel_y = std::clamp (bird_vel_y, -max_bird_vel_y, max_bird_vel_y);
 
 		//make it so that moving diagonally doesn't go faster:
 		if (move != glm::vec2(0.0f)) move = move * elapsed;
@@ -305,8 +307,36 @@ void PlayMode::update(float elapsed) {
 		glm::vec3 frame_up = frame[2];
 
 		bird->position += move.x * frame_right + move.y * frame_up;
-		bird->position.y = std::clamp(bird->position.y, camera->transform->position.y + min_y, camera->transform->position.y + max_y);
-		bird->position.z = std::clamp(bird->position.z, camera->transform->position.z + min_z, camera->transform->position.z + max_z);
+
+		// Wrap y_pos around
+		float min_bird_y_pos = camera->transform->position.y + min_y;
+		float max_bird_y_pos = camera->transform->position.y + max_y;
+		float y_range = max_bird_y_pos - min_bird_y_pos;
+		float norm_bird_y_pos = bird->position.y - min_bird_y_pos;
+
+		while (norm_bird_y_pos < 0) {
+			norm_bird_y_pos += y_range;
+		}
+		while (norm_bird_y_pos > y_range) {
+			norm_bird_y_pos -= y_range;
+		}
+
+		bird->position.y = min_bird_y_pos + norm_bird_y_pos;
+
+		// Wrap z_pos around
+		float min_bird_z_pos = camera->transform->position.z + min_z;
+		float max_bird_z_pos = camera->transform->position.z + max_z;
+		float z_range = max_bird_z_pos - min_bird_z_pos;
+		float norm_bird_z_pos = bird->position.z - min_bird_z_pos;
+
+		while (norm_bird_z_pos < 0) {
+			norm_bird_z_pos += z_range;
+		}
+		while (norm_bird_z_pos > z_range) {
+			norm_bird_z_pos -= z_range;
+		}
+
+		bird->position.z = min_bird_z_pos + norm_bird_z_pos;
 	}
 
 	// Handle plane movement
@@ -403,17 +433,18 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 			0.0f, 0.0f, 0.0f, 1.0f
 		));
 
-		constexpr float H = 0.09f;
+		constexpr float H = 0.08f;
 
-		char display_text[50];
-		sprintf(display_text, "AD + Space to move; Lives: %d; Score: %d", lives, score);
+		std::string display_text = 
+			"AD to move + Space to fly; Lives: " + std::to_string(lives) + 
+			"; Score: " + std::to_string(score);
 		lines.draw_text(display_text,
-			glm::vec3(-aspect + 0.1f * H, -1.0 + 0.1f * H, 0.0),
+			glm::vec3(-aspect + 0.6f * H, -1.0 + 0.6f * H, 0.0),
 			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
 			glm::u8vec4(0x00, 0x00, 0x00, 0x00));
 		float ofs = 2.0f / drawable_size.y;
 		lines.draw_text(display_text,
-			glm::vec3(-aspect + 0.1f * H + ofs, -1.0 + + 0.1f * H + ofs, 0.0),
+			glm::vec3(-aspect + 0.6f * H + ofs, -1.0 + + 0.6f * H + ofs, 0.0),
 			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
 			glm::u8vec4(0xff, 0xff, 0xff, 0x00));
 	}

@@ -46,6 +46,7 @@ private:
 	Scene::Transform *bird = nullptr;
 	Scene::Transform *bird_collider = nullptr;
 	float bird_vel_y = 0.0f;
+	float max_bird_vel_y = 10.0f;
 	const float gravity = 8.0f;
 	const float jump_vel = 2.0f;
 	float wing_anim_time = 0.0f;
@@ -75,10 +76,10 @@ private:
 
 	const float min_x = -10;
 	const float max_x = 30;
-	const float min_y = -2.5f;
-	const float max_y = 2.5f;
-	const float min_z = -1.5f;
-	const float max_z = 1.5f;
+	const float min_y = -3.0f;
+	const float max_y = 3.0f;
+	const float min_z = -2.0f;
+	const float max_z = 2.0f;
 
 	/// Functions ///
 
